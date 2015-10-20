@@ -1,6 +1,6 @@
 {
   "name": "radial_plot",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "authors": [
     "Gordon Murray Dent <gordonmdent@gmail.com>"
   ],
@@ -18,7 +18,7 @@
     "tests"
   ],
   "dependencies": {
-    "angular": "~1.2.2",
-    "d3": "~3.3.10"
+    "angular": "~1.3.9",
+    "d3": "~3.4.4"
   }
 }
