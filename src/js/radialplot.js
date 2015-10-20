@@ -21,6 +21,7 @@ ui.d3.RadialPlot = function(element) {
   this._interpolation = 'linear-closed';
   this._editable = false;
   this._labelled = true;
+  this._rotateLabels = false;
   this._visiblePoints = true;
   this._tooltips = true;
   this._animated = true;
@@ -37,9 +38,9 @@ ui.d3.RadialPlot = function(element) {
 };
 
 /**
- * Set the radius of the radial plot
+ * Set the explanations for the axes
  *
- * @param {Number} plotRadius
+ * @param {Array} exps
  */
 ui.d3.RadialPlot.prototype.setAxisExplanations = function(exps) {
   this._exps = exps || this._exps;
@@ -92,12 +93,12 @@ ui.d3.RadialPlot.prototype.setOverPointRadius = function(overPointRadius) {
 };
 
 /**
- * Set the radius of each point when hovered over
+ * Set whether or not tooltips are displayed
  * 
- * @param {Number} tooltips
+ * @param {Boolean} tooltips
  */
 ui.d3.RadialPlot.prototype.setTooltips = function(tooltips) {
-  this._tooltips = (typeof tooltips !== 'undefined') ? tooltips :this._tooltips;
+  this._tooltips = (typeof tooltips !== 'undefined') ? tooltips==='true' :this._tooltips;
 
   return this;
 };
@@ -114,8 +115,13 @@ ui.d3.RadialPlot.prototype.setPadding = function(padding) {
   return this;
 };
 
-ui.d3.RadialPlot.prototype.setInterpolation = function(interpolation) {
-  this._interpolation = interpolation || this._interpolation;
+/**
+ * Set interpolation method
+ * 
+ * @param {String} interpolation
+ */
+ ui.d3.RadialPlot.prototype.setInterpolation = function(interpolation) {
+  this._interpolation = (typeof interpolation !== 'undefined') ? interpolation :this._interpolation;
 
   return this;
 };
@@ -126,7 +132,7 @@ ui.d3.RadialPlot.prototype.setInterpolation = function(interpolation) {
  * @param {Boolean} editable
  */
 ui.d3.RadialPlot.prototype.setEditable = function(editable) {
-  this._editable = (typeof editable !== 'undefined') ? editable :this._editable;
+  this._editable = (typeof editable !== 'undefined') ? editable==='true' :this._editable;
 
   return this;
 };
@@ -137,7 +143,17 @@ ui.d3.RadialPlot.prototype.setEditable = function(editable) {
  * @param {Boolean} labelled
  */
 ui.d3.RadialPlot.prototype.setLabelled = function(labelled) {
-  this._labelled = (typeof labelled !== 'undefined') ? labelled :this._labelled;
+  this._labelled = (typeof labelled !== 'undefined') ? labelled==='true' :this._labelled;
+  return this;
+};
+
+/**
+ * Set whether to rotate labels or not
+ * 
+ * @param {Boolean} rotateLabels
+ */
+ui.d3.RadialPlot.prototype.setRotateLabels = function(rotateLabels) {
+  this._rotateLabels = (typeof rotateLabels !== 'undefined') ? rotateLabels==='true' :this._rotateLabels;
   return this;
 };
 
@@ -147,7 +163,7 @@ ui.d3.RadialPlot.prototype.setLabelled = function(labelled) {
  * @param {Boolean} labelled
  */
 ui.d3.RadialPlot.prototype.setVisiblePoints = function(points) {
-  this._visiblePoints = (typeof points !== 'undefined') ? points :this._visiblePoints;
+  this._visiblePoints = (typeof points !== 'undefined') ? points==='true' :this._visiblePoints;
   return this;
 };
 
@@ -157,7 +173,7 @@ ui.d3.RadialPlot.prototype.setVisiblePoints = function(points) {
  * @param {Boolean} animated
  */
 ui.d3.RadialPlot.prototype.setAnimated = function(animated) {
-  this._animated = (typeof animated !== 'undefined') ? animated :this._animated;
+  this._animated = (typeof animated !== 'undefined') ? animated==='true' :this._animated;
 
   return this;
 };
@@ -179,10 +195,10 @@ ui.d3.RadialPlot.prototype.setAnimationTimes = function(tweenTime, delayTime) {
 /**
  * Set the animation easing type for when the drawing of a shape is animated
  * 
- * @param {Number} tooltips
+ * @param {String} animateEasing
  */
 ui.d3.RadialPlot.prototype.setAnimateEasing = function(animateEasing) {
-  this._animateEasing = animateEasing|| this._animateEasing;
+  this._animateEasing = (typeof animateEasing !== 'undefined') ? animateEasing :this._animateEasing;
 
   return this;
 };
@@ -190,10 +206,10 @@ ui.d3.RadialPlot.prototype.setAnimateEasing = function(animateEasing) {
 /**
  * Set what scale to use: currently either linear or logarithmic
  * 
- * @param {Boolean} scaleType
+ * @param {String} scaleType
  */
 ui.d3.RadialPlot.prototype.setScaleType = function(scaleType) {
-  this._scaleType = scaleType || this._scaleType;
+  this._scaleType = (typeof scaleType !== 'undefined') ? scaleType :this._scaleType;
 
   return this;
 };
@@ -204,10 +220,11 @@ ui.d3.RadialPlot.prototype.setScaleType = function(scaleType) {
  * @param {Boolean} freeDraw
  */
 ui.d3.RadialPlot.prototype.setFreeDraw = function(freeDraw) {
-  this._freeDraw = freeDraw || this._freeDraw;
+  this._freeDraw = (typeof freeDraw !== 'undefined') ? freeDraw==='true' :this._freeDraw;
 
   return this;
 };
+
 
 
 /**
@@ -467,7 +484,7 @@ ui.d3.RadialPlot.prototype._drawInteractivePolygons = function(dataset, scope) {
             currentPoint.attr('r', that._overPointRadius);
       } else if (that._tooltips) {
         var text = d.name + ': ' + ui.d3.RadialPlot.toFloat(d.value,1) + '%';
-        if (that.compare) {
+        if (that.compare.length > 0) {
           text += ' - ' + ui.d3.RadialPlot.toFloat(that.compare[i].value,1) + '%';
         }
         var cx =  ui.d3.RadialPlot.toFloat(currentPoint.attr('cx')),
@@ -625,7 +642,7 @@ ui.d3.RadialPlot.prototype._drawPoints = function(dataset, sum) {
 ui.d3.RadialPlot.prototype._showExplanation = function(d) {
   var that = this;
   var exp = d3.select(that._element).select('.explanation p');
-  if (typeof this._exps !== 'undefined' && this._exps[d.id] !== 'undefined') {
+  if (typeof this._exps !== 'undefined' && typeof this._exps[d.id] !== 'undefined') {
     if (!exp.empty()) {
       exp
         .text(d.name + ' - ' + that._exps[d.id])
@@ -654,13 +671,23 @@ ui.d3.RadialPlot.prototype._addLabels = function(dataset) {
     .text(function(d){
       return d.name;
     })
-    .attr("text-anchor", "middle")
     .attr('class','label')
-    .attr('text-anchor', 'middle')
+    .attr('text-anchor', function(d,i){
+      if (that._rotateLabels) {
+        return 'middle';
+      }
+      else {
+        var rotation = (that.angle(i) )* (180/Math.PI);
+        if (rotation > 180) {
+            return 'end';
+        }
+        return 'start';
+      }
+    })
     .attr('transform', function(d,i) {
-      var transform = that._plotRadius + that._padding,
+      if (that._rotateLabels) {
+        var transform = that._plotRadius + that._padding,
           x = (that._innerRadius + that._plotRadius+2) * Math.sin(that.angle(i)) + transform,
-          y = (-(that._innerRadius + that._plotRadius + 2) * Math.cos(that.angle(i))) + transform,
           y = (-(that._innerRadius + that._plotRadius+2) * Math.cos(that.angle(i))) + transform,
           rotation = that.angle(i) * (180/Math.PI);
           if (i > min && i < max) {
@@ -668,7 +695,15 @@ ui.d3.RadialPlot.prototype._addLabels = function(dataset) {
             x = (that._innerRadius + that._plotRadius + 4) * Math.sin(that.angle(i)) + transform;
             y = (-(that._innerRadius + that._plotRadius + 4) * Math.cos(that.angle(i))) + transform;
           }
-      return 'translate('+x+','+y+') rotate(' + rotation + ')';
+        return 'translate('+x+','+y+') rotate(' + rotation + ')';
+      }
+      else {
+        var transform = that._plotRadius + that._padding,
+          x = (that._innerRadius + that._plotRadius+3) * Math.sin(that.angle(i)) + transform,
+          y = (-(that._innerRadius + that._plotRadius+3) * Math.cos(that.angle(i))) + transform;
+      return 'translate('+x+','+y+')'; 
+
+      }
     })
     .on('mouseover', function(d) {
       that.overLabelId = d.id;
@@ -830,22 +865,24 @@ ui.d3.RadialPlot.prototype._addSceneTransitions = function(scenes, area, points)
  */
 ui.radialplot = function() {
   function link(scope, element, attrs) {
+
     var radialPlot = new ui.d3.RadialPlot(element[0])
         .setPlotRadius(parseInt(attrs.plotRadius, 10))
         .setInnerRadius(parseInt(attrs.innerRadius, 10))
         .setPadding(parseInt(attrs.padding, 10))
-        .setPointRadius(parseInt(attrs.pointRadius, 10))
+        .setPointRadius(parseFloat(attrs.pointRadius, 10))
         .setOverPointRadius(parseInt(attrs.overPointRadius, 10))
         .setInterpolation(attrs.interpolation)
-        .setEditable((attrs.editable === 'true'))
-        .setTooltips((attrs.tooltips === 'true'))
-        .setLabelled((attrs.labelled === 'true'))
-        .setVisiblePoints((attrs.visiblePoints === 'false') ? false : true)
-        .setAnimated((attrs.animate === 'false')? false : true)
+        .setEditable(attrs.editable)
+        .setTooltips(attrs.tooltips)
+        .setLabelled(attrs.labelled)
+        .setRotateLabels(attrs.rotateLabels)
+        .setVisiblePoints(attrs.visiblePoints)
+        .setAnimated(attrs.animate)
         .setAnimateEasing(attrs.animateEasing)
         .setAnimationTimes(parseInt(attrs.animateDuration, 10), parseInt(attrs.delayDuration, 10))
         .setScaleType(attrs.scale)
-        .setFreeDraw((attrs.free === 'true'));
+        .setFreeDraw(attrs.free);
 
     // Watch statement that triggers redraw of content. 
     if (typeof attrs.compare === 'undefined') {
